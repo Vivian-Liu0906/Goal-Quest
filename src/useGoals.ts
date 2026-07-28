@@ -1,98 +1,109 @@
-import { useEffect, useState, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
-import type { Goal, GoalColor, Milestone, Task } from "./types";
-import { loadGoals, saveGoals } from "./storage";
+import { useCallback, useEffect, useState } from "react";
+import type { Goal, GoalColor } from "./types";
+import * as api from "./api";
 
-export function useGoals() {
-  const [goals, setGoals] = useState<Goal[]>(() => loadGoals());
+export function useGoals(userId: string | null) {
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    if (!userId) {
+      setGoals([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await api.fetchGoals();
+      setGoals(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("加载数据失败，请刷新重试");
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
-    saveGoals(goals);
-  }, [goals]);
+    reload();
+  }, [reload]);
 
   const addGoal = useCallback(
-    (input: { title: string; description: string; targetXp: number; color: GoalColor }) => {
-      const newGoal: Goal = {
-        id: uuidv4(),
-        title: input.title,
-        description: input.description,
-        targetXp: input.targetXp,
-        color: input.color,
-        tasks: [],
-        milestones: [],
-        createdAt: new Date().toISOString(),
-        archived: false,
-      };
+    async (input: { title: string; description: string; targetXp: number; color: GoalColor }) => {
+      const newGoal = await api.createGoal(input);
       setGoals((prev) => [...prev, newGoal]);
       return newGoal.id;
     },
     []
   );
 
-  const updateGoal = useCallback((goalId: string, updates: Partial<Omit<Goal, "id" | "tasks">>) => {
-    setGoals((prev) => prev.map((g) => (g.id === goalId ? { ...g, ...updates } : g)));
-  }, []);
-
-  const deleteGoal = useCallback((goalId: string) => {
+  const deleteGoal = useCallback(async (goalId: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== goalId));
+    await api.deleteGoal(goalId);
   }, []);
 
-  const addTask = useCallback((goalId: string, input: { title: string; xp: number }) => {
-    const newTask: Task = {
-      id: uuidv4(),
-      title: input.title,
-      xp: input.xp,
-      done: false,
-      createdAt: new Date().toISOString(),
-    };
+  const addTask = useCallback(async (goalId: string, input: { title: string; xp: number }) => {
+    const newTask = await api.createTask(goalId, input);
     setGoals((prev) =>
       prev.map((g) => (g.id === goalId ? { ...g, tasks: [...g.tasks, newTask] } : g))
     );
   }, []);
 
-  const toggleTask = useCallback((goalId: string, taskId: string) => {
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id !== goalId) return g;
-        return {
-          ...g,
-          tasks: g.tasks.map((t) =>
-            t.id === taskId
-              ? { ...t, done: !t.done, doneAt: !t.done ? new Date().toISOString() : undefined }
-              : t
-          ),
-        };
-      })
-    );
-  }, []);
+  const toggleTask = useCallback(
+    async (goalId: string, taskId: string) => {
+      const goal = goals.find((g) => g.id === goalId);
+      const task = goal?.tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const nextDone = !task.done;
 
-  const deleteTask = useCallback((goalId: string, taskId: string) => {
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id !== goalId
+            ? g
+            : {
+                ...g,
+                tasks: g.tasks.map((t) =>
+                  t.id === taskId
+                    ? { ...t, done: nextDone, doneAt: nextDone ? new Date().toISOString() : undefined }
+                    : t
+                ),
+              }
+        )
+      );
+      await api.toggleTask(taskId, nextDone);
+    },
+    [goals]
+  );
+
+  const deleteTask = useCallback(async (goalId: string, taskId: string) => {
     setGoals((prev) =>
       prev.map((g) => (g.id === goalId ? { ...g, tasks: g.tasks.filter((t) => t.id !== taskId) } : g))
     );
+    await api.deleteTask(taskId);
   }, []);
 
-  const addMilestone = useCallback((goalId: string, input: { title: string; thresholdXp: number }) => {
-    const newMilestone: Milestone = {
-      id: uuidv4(),
-      title: input.title,
-      thresholdXp: input.thresholdXp,
-    };
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId
-          ? {
-              ...g,
-              milestones: [...g.milestones, newMilestone].sort(
-                (a, b) => a.thresholdXp - b.thresholdXp
-              ),
-            }
-          : g
-      )
-    );
-  }, []);
+  const addMilestone = useCallback(
+    async (goalId: string, input: { title: string; thresholdXp: number }) => {
+      const newMilestone = await api.createMilestone(goalId, input);
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId
+            ? {
+                ...g,
+                milestones: [...g.milestones, newMilestone].sort(
+                  (a, b) => a.thresholdXp - b.thresholdXp
+                ),
+              }
+            : g
+        )
+      );
+    },
+    []
+  );
 
-  const deleteMilestone = useCallback((goalId: string, milestoneId: string) => {
+  const deleteMilestone = useCallback(async (goalId: string, milestoneId: string) => {
     setGoals((prev) =>
       prev.map((g) =>
         g.id === goalId
@@ -100,23 +111,20 @@ export function useGoals() {
           : g
       )
     );
-  }, []);
-
-  const replaceAllGoals = useCallback((newGoals: Goal[]) => {
-    setGoals(newGoals);
+    await api.deleteMilestone(milestoneId);
   }, []);
 
   return {
     goals,
+    loading,
+    error,
     addGoal,
-    updateGoal,
     deleteGoal,
     addTask,
     toggleTask,
     deleteTask,
     addMilestone,
     deleteMilestone,
-    replaceAllGoals,
   };
 }
 
