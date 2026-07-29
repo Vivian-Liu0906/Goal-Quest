@@ -123,6 +123,12 @@ const dict = {
     zh: "计时进行中，暂停或重置后可修改时长",
     en: "Timer is running — pause or reset to change duration",
   },
+  "pomodoro.taskNameLabel": { zh: "这次专注做什么", en: "What are you focusing on" },
+  "pomodoro.taskNamePlaceholder": { zh: "例如：写机器学习作业", en: "e.g. Write ML homework" },
+  "pomodoro.breakdownTitle": { zh: "今日时间分布", en: "Today's time breakdown" },
+  "pomodoro.breakdownEmpty": { zh: "还没有完成的番茄钟", en: "No completed pomodoros yet" },
+  "pomodoro.untitledTask": { zh: "未命名任务", en: "Untitled task" },
+  "pomodoro.minutesUnit": { zh: "分钟", en: "min" },
 
   "todo.title": { zh: "每日待办", en: "Daily To-Do" },
   "todo.subtitle": { zh: "今天要做的事，做完就划掉", en: "What to do today — check it off when done" },

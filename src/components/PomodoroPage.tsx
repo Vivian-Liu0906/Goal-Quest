@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Minus, Pause, Play, Plus, RotateCcw } from "lucide-react";
 import { useLanguage } from "../i18n";
 import * as api from "../pomodoroApi";
+import type { PomodoroBreakdownItem } from "../pomodoroApi";
+import PieChart from "./PieChart";
 
 type Mode = "focus" | "break";
 
@@ -30,14 +32,24 @@ export default function PomodoroPage({ userId }: { userId: string }) {
   const [secondsLeft, setSecondsLeft] = useState(() => loadSettings().focus * 60);
   const [running, setRunning] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
+  const [taskName, setTaskName] = useState("");
+  const [breakdown, setBreakdown] = useState<PomodoroBreakdownItem[]>([]);
   const intervalRef = useRef<number | null>(null);
+
+  const reloadBreakdown = useCallback(() => {
+    api
+      .fetchTodayBreakdown()
+      .then(setBreakdown)
+      .catch((err) => console.error(err));
+  }, []);
 
   useEffect(() => {
     api
       .fetchTodaySessionCount()
       .then(setTodayCount)
       .catch((err) => console.error(err));
-  }, [userId]);
+    reloadBreakdown();
+  }, [userId, reloadBreakdown]);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ focus: focusMinutes, brk: breakMinutes }));
@@ -49,16 +61,20 @@ export default function PomodoroPage({ userId }: { userId: string }) {
     setRunning(false);
     if (mode === "focus") {
       api
-        .logPomodoroSession(focusMinutes)
-        .then(() => setTodayCount((c) => c + 1))
+        .logPomodoroSession(focusMinutes, taskName)
+        .then(() => {
+          setTodayCount((c) => c + 1);
+          reloadBreakdown();
+        })
         .catch((err) => console.error(err));
       setMode("break");
       setSecondsLeft(breakMinutes * 60);
+      setTaskName("");
     } else {
       setMode("focus");
       setSecondsLeft(focusMinutes * 60);
     }
-  }, [mode, focusMinutes, breakMinutes]);
+  }, [mode, focusMinutes, breakMinutes, taskName, reloadBreakdown]);
 
   useEffect(() => {
     if (!running) return;
@@ -136,6 +152,16 @@ export default function PomodoroPage({ userId }: { userId: string }) {
           {t("pomodoro.break")}
         </button>
       </div>
+
+      {mode === "focus" && (
+        <input
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
+          disabled={running}
+          placeholder={t("pomodoro.taskNamePlaceholder")}
+          className="w-full mt-5 rounded-lg border border-neutral-300 px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-60"
+        />
+      )}
 
       <div className="relative mt-10 h-56 w-56">
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
@@ -232,6 +258,21 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         </div>
 
         {running && <p className="mt-2 text-xs text-neutral-400">{t("pomodoro.runningHint")}</p>}
+      </div>
+
+      <div className="w-full mt-4 rounded-2xl border border-neutral-200 bg-white p-5">
+        <p className="text-xs font-medium text-neutral-500 mb-4">{t("pomodoro.breakdownTitle")}</p>
+        {breakdown.length === 0 ? (
+          <p className="text-sm text-neutral-400 text-center py-4">{t("pomodoro.breakdownEmpty")}</p>
+        ) : (
+          <PieChart
+            items={breakdown.map((item) => ({
+              label: item.taskName || t("pomodoro.untitledTask"),
+              percent: item.percent,
+              minutes: item.totalMinutes,
+            }))}
+          />
+        )}
       </div>
     </div>
   );
