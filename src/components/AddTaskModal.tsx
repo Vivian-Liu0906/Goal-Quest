@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
+import { useLanguage } from "../i18n";
 
 interface AddTaskModalProps {
   onClose: () => void;
@@ -7,6 +8,7 @@ interface AddTaskModalProps {
 }
 
 export default function AddTaskModal({ onClose, onCreate }: AddTaskModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [xp, setXp] = useState(20);
 
@@ -18,22 +20,24 @@ export default function AddTaskModal({ onClose, onCreate }: AddTaskModalProps) {
   };
 
   return (
-    <Modal title="新建任务" onClose={onClose}>
+    <Modal title={t("modal.newTask.title")} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">任务内容</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">
+            {t("modal.newTask.content")}
+          </label>
           <input
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="例如：完成本周编程作业"
+            placeholder={t("modal.newTask.placeholder")}
             className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">
-            经验值（按难度/时长估算）
+            {t("modal.newTask.xp")}
           </label>
           <input
             type="number"
@@ -48,7 +52,7 @@ export default function AddTaskModal({ onClose, onCreate }: AddTaskModalProps) {
           type="submit"
           className="w-full rounded-lg bg-neutral-900 text-white text-sm font-medium py-2.5 hover:bg-neutral-800 transition-colors"
         >
-          添加任务
+          {t("modal.newTask.submit")}
         </button>
       </form>
     </Modal>

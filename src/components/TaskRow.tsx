@@ -1,5 +1,6 @@
 import { Check, Trash2 } from "lucide-react";
 import type { Task } from "../types";
+import { useLanguage } from "../i18n";
 
 interface TaskRowProps {
   task: Task;
@@ -8,11 +9,13 @@ interface TaskRowProps {
 }
 
 export default function TaskRow({ task, onToggle, onDelete }: TaskRowProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 hover:border-neutral-300 transition-colors">
       <button
         onClick={onToggle}
-        aria-label={task.done ? "标记为未完成" : "标记为完成"}
+        aria-label={task.done ? t("task.markUndone") : t("task.markDone")}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
           task.done
             ? "border-teal-500 bg-teal-500"
@@ -34,7 +37,7 @@ export default function TaskRow({ task, onToggle, onDelete }: TaskRowProps) {
 
       <button
         onClick={onDelete}
-        aria-label="删除任务"
+        aria-label={t("task.delete")}
         className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-300 hover:text-red-500 p-1"
       >
         <Trash2 size={14} />

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
+import { useLanguage } from "../i18n";
 
 interface AddMilestoneModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface AddMilestoneModalProps {
 }
 
 export default function AddMilestoneModal({ onClose, onCreate, maxXp }: AddMilestoneModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [thresholdXp, setThresholdXp] = useState(Math.round(maxXp / 2));
 
@@ -19,22 +21,24 @@ export default function AddMilestoneModal({ onClose, onCreate, maxXp }: AddMiles
   };
 
   return (
-    <Modal title="新建里程碑" onClose={onClose}>
+    <Modal title={t("modal.newMilestone.title")} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">里程碑名称</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">
+            {t("modal.newMilestone.name")}
+          </label>
           <input
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="例如：完成课程第一模块"
+            placeholder={t("modal.newMilestone.placeholder")}
             className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">
-            达到多少经验值时解锁
+            {t("modal.newMilestone.threshold")}
           </label>
           <input
             type="number"
@@ -50,7 +54,7 @@ export default function AddMilestoneModal({ onClose, onCreate, maxXp }: AddMiles
           type="submit"
           className="w-full rounded-lg bg-neutral-900 text-white text-sm font-medium py-2.5 hover:bg-neutral-800 transition-colors"
         >
-          添加里程碑
+          {t("modal.newMilestone.submit")}
         </button>
       </form>
     </Modal>

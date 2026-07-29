@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Target } from "lucide-react";
+import { useLanguage } from "../i18n";
+import type { TranslationKey } from "../i18n";
+import LanguageSwitch from "./LanguageSwitch";
 
 interface AuthPageProps {
   onSignIn: (email: string, password: string) => Promise<void>;
@@ -7,6 +10,7 @@ interface AuthPageProps {
 }
 
 export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,24 +28,27 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
         await onSignIn(email, password);
       } else {
         await onSignUp(email, password);
-        setInfo("注册成功！如果开启了邮箱验证，请去邮箱点确认链接后再登录。");
+        setInfo(t("auth.signUpSuccess"));
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "出错了，请重试";
-      setError(translateError(message));
+      const message = err instanceof Error ? err.message : "unknown";
+      setError(translateError(message, t));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4 relative">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitch />
+      </div>
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2 justify-center mb-8">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100">
             <Target size={18} className="text-teal-800" />
           </span>
-          <h1 className="text-xl font-medium text-neutral-900">Goal Quest</h1>
+          <h1 className="text-xl font-medium text-neutral-900">{t("app.title")}</h1>
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -52,7 +59,7 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
                 mode === "signin" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500"
               }`}
             >
-              登录
+              {t("auth.signIn")}
             </button>
             <button
               onClick={() => setMode("signup")}
@@ -60,13 +67,13 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
                 mode === "signup" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500"
               }`}
             >
-              注册
+              {t("auth.signUp")}
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">邮箱</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t("auth.email")}</label>
               <input
                 type="email"
                 required
@@ -77,14 +84,14 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">密码</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t("auth.password")}</label>
               <input
                 type="password"
                 required
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="至少6位"
+                placeholder={t("auth.passwordHint")}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
@@ -97,7 +104,7 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
               disabled={loading}
               className="w-full rounded-lg bg-neutral-900 text-white text-sm font-medium py-2.5 hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
-              {loading ? "处理中..." : mode === "signin" ? "登录" : "注册"}
+              {loading ? t("auth.processing") : mode === "signin" ? t("auth.signIn") : t("auth.signUp")}
             </button>
           </form>
         </div>
@@ -106,10 +113,10 @@ export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
   );
 }
 
-function translateError(message: string): string {
-  if (message.includes("Invalid login credentials")) return "邮箱或密码不正确";
-  if (message.includes("User already registered")) return "这个邮箱已经注册过了，试试直接登录";
-  if (message.includes("Password should be at least")) return "密码至少需要6位";
-  if (message.includes("Unable to validate email address")) return "邮箱格式不正确";
-  return message;
+function translateError(message: string, t: (key: TranslationKey) => string): string {
+  if (message.includes("Invalid login credentials")) return t("auth.error.invalidCreds");
+  if (message.includes("User already registered")) return t("auth.error.alreadyRegistered");
+  if (message.includes("Password should be at least")) return t("auth.error.weakPassword");
+  if (message.includes("Unable to validate email address")) return t("auth.error.invalidEmail");
+  return t("auth.error.generic");
 }

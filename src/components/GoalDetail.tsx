@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import type { Goal } from "../types";
 import { currentXp, progressPercent } from "../useGoals";
+import { useLanguage } from "../i18n";
 import ProgressBar from "./ProgressBar";
 import TaskRow from "./TaskRow";
 import MilestonePath from "./MilestonePath";
@@ -28,6 +29,7 @@ export default function GoalDetail({
   onAddMilestone,
   onDeleteMilestone,
 }: GoalDetailProps) {
+  const { t } = useLanguage();
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddMilestone, setShowAddMilestone] = useState(false);
 
@@ -45,7 +47,7 @@ export default function GoalDetail({
         className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-800 mb-6"
       >
         <ArrowLeft size={16} />
-        返回全部目标
+        {t("goal.back")}
       </button>
 
       <h1 className="text-2xl font-medium text-neutral-900">{goal.title}</h1>
@@ -55,7 +57,7 @@ export default function GoalDetail({
 
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5">
         <div className="flex justify-between text-sm text-neutral-500 mb-2">
-          <span>目标总进度</span>
+          <span>{t("goal.totalProgress")}</span>
           <span className="font-medium text-neutral-700">
             {xp} / {goal.targetXp} XP ({percent}%)
           </span>
@@ -64,12 +66,12 @@ export default function GoalDetail({
 
         <div className="mt-6">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-neutral-500">旅程</span>
+            <span className="text-xs font-medium text-neutral-500">{t("goal.journey")}</span>
             <button
               onClick={() => setShowAddMilestone(true)}
               className="text-xs text-neutral-400 hover:text-neutral-700 flex items-center gap-1"
             >
-              <Plus size={12} /> 加个里程碑
+              <Plus size={12} /> {t("goal.addMilestone")}
             </button>
           </div>
           <MilestonePath goal={goal} onDeleteMilestone={onDeleteMilestone} />
@@ -79,21 +81,19 @@ export default function GoalDetail({
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-neutral-700">
-            待完成任务 ({pendingTasks.length})
+            {t("goal.pendingTasks")} ({pendingTasks.length})
           </h2>
           <button
             onClick={() => setShowAddTask(true)}
             className={`flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1.5 ${theme.chipBg} ${theme.chipText}`}
           >
-            <Plus size={13} /> 新建任务
+            <Plus size={13} /> {t("goal.newTask")}
           </button>
         </div>
 
         <div className="space-y-2">
           {pendingTasks.length === 0 && (
-            <p className="text-sm text-neutral-400 py-6 text-center">
-              暂无待完成任务，点击右上角添加一个吧
-            </p>
+            <p className="text-sm text-neutral-400 py-6 text-center">{t("goal.noTasks")}</p>
           )}
           {pendingTasks.map((task) => (
             <TaskRow
@@ -108,7 +108,7 @@ export default function GoalDetail({
         {doneTasks.length > 0 && (
           <div className="mt-6">
             <h2 className="text-sm font-medium text-neutral-400 mb-3">
-              已完成 ({doneTasks.length})
+              {t("goal.doneTasks")} ({doneTasks.length})
             </h2>
             <div className="space-y-2">
               {doneTasks.map((task) => (

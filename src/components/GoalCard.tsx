@@ -1,6 +1,7 @@
 import { Target, Trash2 } from "lucide-react";
 import type { Goal } from "../types";
 import { currentXp, progressPercent } from "../useGoals";
+import { useLanguage } from "../i18n";
 import ProgressBar from "./ProgressBar";
 import { COLOR_THEMES } from "../colors";
 
@@ -11,6 +12,7 @@ interface GoalCardProps {
 }
 
 export default function GoalCard({ goal, onOpen, onDelete }: GoalCardProps) {
+  const { t } = useLanguage();
   const percent = progressPercent(goal);
   const xp = currentXp(goal);
   const theme = COLOR_THEMES[goal.color];
@@ -34,7 +36,7 @@ export default function GoalCard({ goal, onOpen, onDelete }: GoalCardProps) {
             onDelete();
           }}
           className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-400 hover:text-red-500 p-1"
-          aria-label="删除目标"
+          aria-label={t("goal.delete")}
         >
           <Trash2 size={16} />
         </button>
@@ -46,12 +48,12 @@ export default function GoalCard({ goal, onOpen, onDelete }: GoalCardProps) {
 
       <div className="mt-4">
         <div className="flex justify-between text-xs text-neutral-500 mb-1.5">
-          <span>{doneCount} / {goal.tasks.length} 个任务</span>
+          <span>{doneCount} / {goal.tasks.length} {t("dashboard.taskCount")}</span>
           <span>{xp} / {goal.targetXp} XP</span>
         </div>
         <ProgressBar percent={percent} color={goal.color} />
         <p className="mt-1.5 text-xs text-neutral-400">
-          {percent >= 100 ? "目标已完成 🎉" : `完成度 ${percent}%`}
+          {percent >= 100 ? t("dashboard.completed") : `${t("dashboard.progressLabel")} ${percent}%`}
         </p>
       </div>
     </div>

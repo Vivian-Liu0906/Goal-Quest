@@ -2,6 +2,7 @@ import { Flag, Trash2 } from "lucide-react";
 import type { Goal } from "../types";
 import { currentXp } from "../useGoals";
 import { COLOR_THEMES } from "../colors";
+import { useLanguage } from "../i18n";
 
 interface MilestonePathProps {
   goal: Goal;
@@ -9,13 +10,14 @@ interface MilestonePathProps {
 }
 
 export default function MilestonePath({ goal, onDeleteMilestone }: MilestonePathProps) {
+  const { t } = useLanguage();
   const xp = currentXp(goal);
   const theme = COLOR_THEMES[goal.color];
 
   const points = [
-    { id: "start", title: "出发", thresholdXp: 0 },
+    { id: "start", title: t("goal.start"), thresholdXp: 0 },
     ...goal.milestones,
-    { id: "end", title: "目标达成", thresholdXp: goal.targetXp },
+    { id: "end", title: t("goal.finish"), thresholdXp: goal.targetXp },
   ];
 
   return (
@@ -59,7 +61,7 @@ export default function MilestonePath({ goal, onDeleteMilestone }: MilestonePath
                 <button
                   onClick={() => onDeleteMilestone(p.id)}
                   className="text-neutral-300 hover:text-red-500"
-                  aria-label="删除里程碑"
+                  aria-label={t("goal.deleteMilestone")}
                 >
                   <Trash2 size={11} />
                 </button>
