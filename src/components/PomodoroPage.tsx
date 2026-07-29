@@ -1,17 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Minus, Pause, Play, Plus, RotateCcw } from "lucide-react";
 import { useLanguage } from "../i18n";
 import * as api from "../pomodoroApi";
 
-const FOCUS_MINUTES = 25;
-const BREAK_MINUTES = 5;
-
 type Mode = "focus" | "break";
+
+const SETTINGS_KEY = "goal-quest-pomodoro-settings";
+const DEFAULT_FOCUS = 25;
+const DEFAULT_BREAK = 5;
+
+function loadSettings(): { focus: number; brk: number } {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { focus: DEFAULT_FOCUS, brk: DEFAULT_BREAK };
+    const parsed = JSON.parse(raw);
+    return {
+      focus: Number(parsed.focus) > 0 ? Number(parsed.focus) : DEFAULT_FOCUS,
+      brk: Number(parsed.brk) > 0 ? Number(parsed.brk) : DEFAULT_BREAK,
+    };
+  } catch {
+    return { focus: DEFAULT_FOCUS, brk: DEFAULT_BREAK };
+  }
+}
 
 export default function PomodoroPage({ userId }: { userId: string }) {
   const { t } = useLanguage();
+  const [{ focus: focusMinutes, brk: breakMinutes }, setSettings] = useState(loadSettings);
   const [mode, setMode] = useState<Mode>("focus");
-  const [secondsLeft, setSecondsLeft] = useState(FOCUS_MINUTES * 60);
+  const [secondsLeft, setSecondsLeft] = useState(() => loadSettings().focus * 60);
   const [running, setRunning] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
   const intervalRef = useRef<number | null>(null);
@@ -23,22 +39,26 @@ export default function PomodoroPage({ userId }: { userId: string }) {
       .catch((err) => console.error(err));
   }, [userId]);
 
-  const totalSeconds = (mode === "focus" ? FOCUS_MINUTES : BREAK_MINUTES) * 60;
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ focus: focusMinutes, brk: breakMinutes }));
+  }, [focusMinutes, breakMinutes]);
+
+  const totalSeconds = (mode === "focus" ? focusMinutes : breakMinutes) * 60;
 
   const handleComplete = useCallback(() => {
     setRunning(false);
     if (mode === "focus") {
       api
-        .logPomodoroSession(FOCUS_MINUTES)
+        .logPomodoroSession(focusMinutes)
         .then(() => setTodayCount((c) => c + 1))
         .catch((err) => console.error(err));
       setMode("break");
-      setSecondsLeft(BREAK_MINUTES * 60);
+      setSecondsLeft(breakMinutes * 60);
     } else {
       setMode("focus");
-      setSecondsLeft(FOCUS_MINUTES * 60);
+      setSecondsLeft(focusMinutes * 60);
     }
-  }, [mode]);
+  }, [mode, focusMinutes, breakMinutes]);
 
   useEffect(() => {
     if (!running) return;
@@ -67,7 +87,23 @@ export default function PomodoroPage({ userId }: { userId: string }) {
   const switchMode = (next: Mode) => {
     setRunning(false);
     setMode(next);
-    setSecondsLeft((next === "focus" ? FOCUS_MINUTES : BREAK_MINUTES) * 60);
+    setSecondsLeft((next === "focus" ? focusMinutes : breakMinutes) * 60);
+  };
+
+  const adjustFocus = (delta: number) => {
+    setSettings((prev) => {
+      const next = Math.min(120, Math.max(1, prev.focus + delta));
+      if (mode === "focus") setSecondsLeft(next * 60);
+      return { ...prev, focus: next };
+    });
+  };
+
+  const adjustBreak = (delta: number) => {
+    setSettings((prev) => {
+      const next = Math.min(60, Math.max(1, prev.brk + delta));
+      if (mode === "break") setSecondsLeft(next * 60);
+      return { ...prev, brk: next };
+    });
   };
 
   const minutes = Math.floor(secondsLeft / 60)
@@ -145,6 +181,58 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         {t("pomodoro.todaySessions")}{" "}
         <span className="font-medium text-neutral-900">{todayCount}</span> {t("pomodoro.sessionsUnit")}
       </p>
+
+      <div className="w-full mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
+        <p className="text-xs font-medium text-neutral-500 mb-3">{t("pomodoro.settings")}</p>
+
+        <div className="flex items-center justify-between py-2">
+          <span className="text-sm text-neutral-700">{t("pomodoro.focusMinutesLabel")}</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => adjustFocus(-5)}
+              disabled={running}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              <Minus size={14} />
+            </button>
+            <span className="w-8 text-center text-sm font-medium text-neutral-900 tabular-nums">
+              {focusMinutes}
+            </span>
+            <button
+              onClick={() => adjustFocus(5)}
+              disabled={running}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+          <span className="text-sm text-neutral-700">{t("pomodoro.breakMinutesLabel")}</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => adjustBreak(-1)}
+              disabled={running}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              <Minus size={14} />
+            </button>
+            <span className="w-8 text-center text-sm font-medium text-neutral-900 tabular-nums">
+              {breakMinutes}
+            </span>
+            <button
+              onClick={() => adjustBreak(1)}
+              disabled={running}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+        </div>
+
+        {running && <p className="mt-2 text-xs text-neutral-400">{t("pomodoro.runningHint")}</p>}
+      </div>
     </div>
   );
 }

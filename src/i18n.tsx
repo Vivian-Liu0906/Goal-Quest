@@ -116,6 +116,13 @@ const dict = {
   "pomodoro.todaySessions": { zh: "今天已完成", en: "Completed today" },
   "pomodoro.sessionsUnit": { zh: "个番茄钟", en: "pomodoros" },
   "pomodoro.completedToast": { zh: "完成一个番茄钟！休息一下吧", en: "Pomodoro complete! Take a break" },
+  "pomodoro.settings": { zh: "时长设置", en: "Duration settings" },
+  "pomodoro.focusMinutesLabel": { zh: "专注时长（分钟）", en: "Focus duration (min)" },
+  "pomodoro.breakMinutesLabel": { zh: "休息时长（分钟）", en: "Break duration (min)" },
+  "pomodoro.runningHint": {
+    zh: "计时进行中，暂停或重置后可修改时长",
+    en: "Timer is running — pause or reset to change duration",
+  },
 
   "todo.title": { zh: "每日待办", en: "Daily To-Do" },
   "todo.subtitle": { zh: "今天要做的事，做完就划掉", en: "What to do today — check it off when done" },
