@@ -1,79 +1,82 @@
 # Goal Quest
 
-一个把长期目标拆解成每日小任务的打卡工具。每完成一个任务获得经验值(XP)，
-经验值累积对应目标的总体完成进度，让枯燥的日常学习变得像游戏通关一样有盼头。
+A check-in tool that breaks long-term goals into small daily tasks. Every completed
+task earns experience points (XP), and accumulated XP maps to overall goal progress —
+turning routine studying into something more like leveling up in a game.
 
-## 功能
+## Features
 
-- 创建多个目标（Goal），每个目标设定一个总经验值(XP)作为终点
-- 在目标下添加任务(Task)，每个任务对应一定XP，勾选完成即可获得经验值
-- 目标详情页展示整体进度条，以及一条带里程碑(Milestone)的"旅程"路径
-<<<<<<< HEAD
-- 每日待办清单：跟目标无关的当天临时事项，做完划掉
-- 番茄钟：25分钟专注 + 5分钟休息的计时器，记录当天完成个数
-- 中英文一键切换（右上角），偏好保存在本地
-- 账号系统：每个人注册自己的邮箱账号，数据云端同步，换设备也能看到
-=======
->>>>>>> 785d0f67a3c407a8791579f86e02cf87f56e56a0
+- Create multiple Goals, each with a total target XP as the finish line
+- Add Tasks under a Goal; each task is worth some XP, check it off to earn it
+- Goal detail page shows an overall progress bar plus a "journey" path with
+  customizable Milestones
+- Daily To-Do list: quick one-off items for today, unrelated to any goal
+- Pomodoro timer: 25 minutes focus + 5 minutes break, tracks how many you've
+  completed today
+- One-click Chinese/English language switch (top right), preference saved locally
+- Accounts: everyone signs up with their own email, data syncs to the cloud and
+  follows you across devices
 
-## 技术栈
+## Tech Stack
 
 - React 19 + TypeScript
 - Vite 8
 - Tailwind CSS 4
-- Supabase（账号登录注册 + 云端数据库）
-- lucide-react（图标）
+- Supabase (auth + cloud database)
+- lucide-react (icons)
 
-## 账号系统
+## Accounts
 
-现在每个人需要注册自己的邮箱账号才能使用。登录后只能看到和管理自己的目标/任务，
-数据存在 Supabase 云端数据库，换设备登录也能看到。数据库开启了 Row Level Security，
-从数据库层面保证用户之间互相看不到对方的数据。
+Everyone needs to sign up with their own email to use the app. Once signed in, you
+only see and manage your own goals/tasks — data lives in a Supabase cloud database
+and follows you when you sign in on another device. Row Level Security is enabled
+on the database, so users can never see each other's data at the database level.
 
-数据库建表脚本在 `supabase/schema.sql`（目标/任务/里程碑）和
-`supabase/schema_v2_daily_pomodoro.sql`（每日待办/番茄钟记录），如果要另建一个
-Supabase 项目，把这两段脚本依次在 SQL Editor 里跑一遍即可。
+The table-creation SQL lives in `supabase/schema.sql` (goals/tasks/milestones) and
+`supabase/schema_v2_daily_pomodoro.sql` (daily to-dos/pomodoro sessions). To set up
+a new Supabase project, run both scripts in the SQL Editor.
 
-## 本地运行
+## Running locally
 
-先在项目根目录新建一个 `.env.local` 文件（这个文件不会被提交到 git），内容参考 `.env.example`：
+Create a `.env.local` file in the project root (this file is not committed to git);
+see `.env.example` for the format:
 
 ```
-VITE_SUPABASE_URL=你的Supabase项目URL
-VITE_SUPABASE_ANON_KEY=你的Supabase publishable key
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_publishable_key
 ```
 
-这两个值在 Supabase 项目的 Project Settings → Data API 里能找到。
+You can find both values under Project Settings → Data API in your Supabase project.
 
 ```bash
 npm install
 npm run dev
 ```
 
-打开终端提示的本地地址（一般是 http://localhost:5173）即可查看。
+Open the local address printed in the terminal (usually http://localhost:5173).
 
-## 构建生产版本
+## Production build
 
 ```bash
 npm run build
-npm run preview   # 本地预览构建产物
+npm run preview   # preview the production build locally
 ```
 
-## 部署
+## Deployment
 
-推荐使用 Vercel 或 Netlify，两者都支持：
+Vercel or Netlify are both good options:
 
-1. 把这个仓库推送到 GitHub
-2. 在 Vercel / Netlify 中选择 "Import Project"，连接这个 GitHub 仓库
-3. Build command 填 `npm run build`，输出目录填 `dist`
-4. **重要**：在项目的 Environment Variables 设置里，添加两个变量：
+1. Push this repo to GitHub
+2. In Vercel/Netlify, choose "Import Project" and connect this GitHub repo
+3. Set the build command to `npm run build` and the output directory to `dist`
+4. **Important**: in the project's Environment Variables settings, add:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-   （因为 `.env.local` 不会被提交到 GitHub，所以线上环境需要手动填这两个值，
-   否则部署上去的网站登录注册会失败）
-5. 点击部署，几分钟后即可拿到一个线上地址
+   (since `.env.local` isn't committed to GitHub, the deployed site needs these
+   set manually, otherwise sign in/sign up will fail in production)
+5. Deploy — you'll get a live URL within a couple of minutes
 
-## 数据模型
+## Data model
 
 ```ts
 interface Task {
@@ -86,22 +89,22 @@ interface Task {
 interface Milestone {
   id: string;
   title: string;
-  thresholdXp: number; // 达到多少XP时解锁
+  thresholdXp: number; // unlocks at this much XP
 }
 
 interface Goal {
   id: string;
   title: string;
   description: string;
-  targetXp: number;      // 目标总经验值
+  targetXp: number;      // target total XP for the goal
   tasks: Task[];
   milestones: Milestone[];
 }
 ```
 
-## 后续可以扩展的方向
+## Possible future directions
 
-- 接入 Supabase / Firebase，实现云端同步和多设备访问
-- 数据导出/导入 JSON 备份
-- 任务完成模式的数据分析（比如哪几天完成率更高）
-- 多目标总览仪表盘
+- Data export/import as JSON backup
+- Analytics on completion patterns (e.g. which days you finish more tasks)
+- Multi-goal overview dashboard
+- Push notifications/reminders for daily to-dos
