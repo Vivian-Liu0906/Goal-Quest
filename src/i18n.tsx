@@ -129,6 +129,16 @@ const dict = {
   "pomodoro.untitledTask": { zh: "未命名任务", en: "Untitled task" },
   "pomodoro.minutesUnit": { zh: "分钟", en: "min" },
 
+  "pet.coins": { zh: "金币", en: "Coins" },
+  "pet.shopButton": { zh: "商店", en: "Shop" },
+  "pet.shopTitle": { zh: "猫咪商店", en: "Cat Shop" },
+  "pet.tabSkins": { zh: "皮肤", en: "Skins" },
+  "pet.tabSnacks": { zh: "零食", en: "Snacks" },
+  "pet.equip": { zh: "装扮", en: "Equip" },
+  "pet.equipped": { zh: "使用中", en: "Equipped" },
+  "pet.fed": { zh: "已投喂", en: "Fed!" },
+  "pet.earnedCoins": { zh: "获得金币", en: "coins earned" },
+
   "nav.statistics": { zh: "统计", en: "Statistics" },
 
   "stats.title": { zh: "数据统计", en: "Statistics" },

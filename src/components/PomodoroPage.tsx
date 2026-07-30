@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Minus, Pause, Play, Plus, RotateCcw } from "lucide-react";
+import { Pause, Play, RotateCcw, ShoppingBag } from "lucide-react";
 import { useLanguage } from "../i18n";
 import * as api from "../pomodoroApi";
+import { usePet } from "../usePet";
+import Cat from "./Cat";
+import PetShopModal from "./PetShopModal";
 
 type Mode = "focus" | "break";
 
@@ -25,12 +28,16 @@ function loadSettings(): { focus: number; brk: number } {
 
 export default function PomodoroPage({ userId }: { userId: string }) {
   const { t } = useLanguage();
+  const { pet, earnCoinsForFocus, spend, purchaseSkin, equip } = usePet(userId);
   const [{ focus: focusMinutes, brk: breakMinutes }, setSettings] = useState(loadSettings);
   const [mode, setMode] = useState<Mode>("focus");
   const [secondsLeft, setSecondsLeft] = useState(() => loadSettings().focus * 60);
   const [running, setRunning] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
   const [taskName, setTaskName] = useState("");
+  const [showShop, setShowShop] = useState(false);
+  const [happyBurst, setHappyBurst] = useState(0);
+  const [coinFlash, setCoinFlash] = useState<number | null>(null);
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -53,6 +60,15 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         .logPomodoroSession(focusMinutes, taskName)
         .then(() => setTodayCount((c) => c + 1))
         .catch((err) => console.error(err));
+      earnCoinsForFocus(focusMinutes)
+        .then((delta) => {
+          if (delta) {
+            setCoinFlash(delta);
+            setHappyBurst((k) => k + 1);
+            setTimeout(() => setCoinFlash(null), 2200);
+          }
+        })
+        .catch((err) => console.error(err));
       setMode("break");
       setSecondsLeft(breakMinutes * 60);
       setTaskName("");
@@ -60,7 +76,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
       setMode("focus");
       setSecondsLeft(focusMinutes * 60);
     }
-  }, [mode, focusMinutes, breakMinutes, taskName]);
+  }, [mode, focusMinutes, breakMinutes, taskName, earnCoinsForFocus]);
 
   useEffect(() => {
     if (!running) return;
@@ -92,20 +108,24 @@ export default function PomodoroPage({ userId }: { userId: string }) {
     setSecondsLeft((next === "focus" ? focusMinutes : breakMinutes) * 60);
   };
 
-  const adjustFocus = (delta: number) => {
+  const handleFocusSlider = (value: number) => {
     setSettings((prev) => {
-      const next = Math.min(120, Math.max(1, prev.focus + delta));
-      if (mode === "focus") setSecondsLeft(next * 60);
-      return { ...prev, focus: next };
+      if (mode === "focus" && !running) setSecondsLeft(value * 60);
+      return { ...prev, focus: value };
     });
   };
 
-  const adjustBreak = (delta: number) => {
+  const handleBreakSlider = (value: number) => {
     setSettings((prev) => {
-      const next = Math.min(60, Math.max(1, prev.brk + delta));
-      if (mode === "break") setSecondsLeft(next * 60);
-      return { ...prev, brk: next };
+      if (mode === "break" && !running) setSecondsLeft(value * 60);
+      return { ...prev, brk: value };
     });
+  };
+
+  const handleFeedSnack = async (cost: number) => {
+    const ok = await spend(cost);
+    if (ok) setHappyBurst((k) => k + 1);
+    return ok;
   };
 
   const minutes = Math.floor(secondsLeft / 60)
@@ -115,12 +135,45 @@ export default function PomodoroPage({ userId }: { userId: string }) {
   const progress = 1 - secondsLeft / totalSeconds;
   const circumference = 2 * Math.PI * 90;
 
+  const catMood = coinFlash
+    ? "happy"
+    : running
+    ? mode === "focus"
+      ? "studying"
+      : "sleeping"
+    : "idle";
+
   return (
     <div className="max-w-md mx-auto px-4 py-8 flex flex-col items-center">
-      <h1 className="text-2xl font-medium text-neutral-900">{t("pomodoro.title")}</h1>
-      <p className="text-sm text-neutral-500 mt-1 text-center">{t("pomodoro.subtitle")}</p>
+      <div className="w-full flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-medium text-neutral-900">{t("pomodoro.title")}</h1>
+          <p className="text-sm text-neutral-500 mt-1">{t("pomodoro.subtitle")}</p>
+        </div>
+      </div>
 
-      <div className="flex mt-6 rounded-full bg-neutral-100 p-1 text-sm font-medium">
+      {pet && (
+        <div className="w-full flex items-center justify-between mt-4">
+          <span className="text-sm font-medium text-amber-600">🪙 {pet.coins}</span>
+          <button
+            onClick={() => setShowShop(true)}
+            className="flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1.5 bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+          >
+            <ShoppingBag size={13} /> {t("pet.shopButton")}
+          </button>
+        </div>
+      )}
+
+      <div className="relative h-40 w-40 mt-2">
+        <Cat mood={catMood} skin={pet?.equippedSkin ?? "default"} happyBurstKey={happyBurst} />
+        {coinFlash && (
+          <span className="absolute -top-2 right-0 text-xs font-medium text-amber-600 bg-amber-50 rounded-full px-2 py-0.5 border border-amber-200">
+            +{coinFlash} 🪙
+          </span>
+        )}
+      </div>
+
+      <div className="flex mt-4 rounded-full bg-neutral-100 p-1 text-sm font-medium">
         <button
           onClick={() => switchMode("focus")}
           className={`px-4 py-1.5 rounded-full transition-colors ${
@@ -149,7 +202,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         />
       )}
 
-      <div className="relative mt-10 h-56 w-56">
+      <div className="relative mt-8 h-56 w-56">
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
           <circle cx="100" cy="100" r="90" fill="none" stroke="#E5E5E5" strokeWidth="10" />
           <circle
@@ -195,56 +248,54 @@ export default function PomodoroPage({ userId }: { userId: string }) {
       </p>
 
       <div className="w-full mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
-        <p className="text-xs font-medium text-neutral-500 mb-3">{t("pomodoro.settings")}</p>
+        <p className="text-xs font-medium text-neutral-500 mb-4">{t("pomodoro.settings")}</p>
 
-        <div className="flex items-center justify-between py-2">
-          <span className="text-sm text-neutral-700">{t("pomodoro.focusMinutesLabel")}</span>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => adjustFocus(-5)}
-              disabled={running}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              <Minus size={14} />
-            </button>
-            <span className="w-8 text-center text-sm font-medium text-neutral-900 tabular-nums">
-              {focusMinutes}
-            </span>
-            <button
-              onClick={() => adjustFocus(5)}
-              disabled={running}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              <Plus size={14} />
-            </button>
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm text-neutral-700">{t("pomodoro.focusMinutesLabel")}</span>
+            <span className="text-sm font-medium text-neutral-900 tabular-nums">{focusMinutes}</span>
           </div>
+          <input
+            type="range"
+            min={5}
+            max={90}
+            step={5}
+            value={focusMinutes}
+            disabled={running}
+            onChange={(e) => handleFocusSlider(Number(e.target.value))}
+            className="w-full accent-teal-600 disabled:opacity-40"
+          />
         </div>
 
-        <div className="flex items-center justify-between py-2">
-          <span className="text-sm text-neutral-700">{t("pomodoro.breakMinutesLabel")}</span>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => adjustBreak(-1)}
-              disabled={running}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              <Minus size={14} />
-            </button>
-            <span className="w-8 text-center text-sm font-medium text-neutral-900 tabular-nums">
-              {breakMinutes}
-            </span>
-            <button
-              onClick={() => adjustBreak(1)}
-              disabled={running}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              <Plus size={14} />
-            </button>
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm text-neutral-700">{t("pomodoro.breakMinutesLabel")}</span>
+            <span className="text-sm font-medium text-neutral-900 tabular-nums">{breakMinutes}</span>
           </div>
+          <input
+            type="range"
+            min={1}
+            max={30}
+            step={1}
+            value={breakMinutes}
+            disabled={running}
+            onChange={(e) => handleBreakSlider(Number(e.target.value))}
+            className="w-full accent-amber-500 disabled:opacity-40"
+          />
         </div>
 
-        {running && <p className="mt-2 text-xs text-neutral-400">{t("pomodoro.runningHint")}</p>}
+        {running && <p className="mt-3 text-xs text-neutral-400">{t("pomodoro.runningHint")}</p>}
       </div>
+
+      {showShop && pet && (
+        <PetShopModal
+          pet={pet}
+          onClose={() => setShowShop(false)}
+          onBuySkin={purchaseSkin}
+          onEquip={equip}
+          onFeedSnack={handleFeedSnack}
+        />
+      )}
     </div>
   );
 }

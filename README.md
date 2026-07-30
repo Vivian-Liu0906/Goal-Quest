@@ -11,8 +11,12 @@ turning routine studying into something more like leveling up in a game.
 - Goal detail page shows an overall progress bar plus a "journey" path with
   customizable Milestones
 - Daily To-Do list: quick one-off items for today, unrelated to any goal
-- Pomodoro timer: 25 minutes focus + 5 minutes break, tracks how many you've
-  completed today
+- Pomodoro timer: adjustable focus/break duration via slider, tracks how many
+  you've completed today, name each session and see a time-breakdown pie chart
+- A little line-drawing cat studies alongside you during focus sessions; earn
+  coins for every focus minute, spend them on snacks or unlockable cat skins
+- Statistics page: view your pomodoro time breakdown by Day / Week / Month
+- Daily To-Do list: date navigation to browse what you did on any past day
 - One-click Chinese/English language switch (top right), preference saved locally
 - Accounts: everyone signs up with their own email, data syncs to the cloud and
   follows you across devices

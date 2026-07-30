@@ -3,3 +3,47 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
+
+@keyframes cat-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.cat-float {
+  animation: cat-float 2.6s ease-in-out infinite;
+}
+
+@keyframes cat-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  93% { transform: scaleY(0.1); }
+}
+.cat-eye {
+  animation: cat-blink 4.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes cat-tail-wag {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(10deg); }
+}
+.cat-tail {
+  animation: cat-tail-wag 1.8s ease-in-out infinite;
+  transform-origin: 60% 90%;
+}
+
+@keyframes cat-heart-float {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-46px) scale(1.1); opacity: 0; }
+}
+.cat-heart {
+  animation: cat-heart-float 1.6s ease-out forwards;
+}
+
+@keyframes cat-zzz-float {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-24px); opacity: 0; }
+}
+.cat-zzz {
+  animation: cat-zzz-float 2.4s ease-out infinite;
+}
