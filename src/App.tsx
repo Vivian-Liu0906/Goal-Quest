@@ -12,6 +12,7 @@ import NavTabs from "./components/NavTabs";
 import type { View } from "./components/NavTabs";
 import PomodoroPage from "./components/PomodoroPage";
 import DailyTodoPage from "./components/DailyTodoPage";
+import StatisticsPage from "./components/StatisticsPage";
 
 function AppInner() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
@@ -90,6 +91,8 @@ function AuthedApp({
         <PomodoroPage userId={userId} />
       ) : view === "todos" ? (
         <DailyTodoPage userId={userId} />
+      ) : view === "statistics" ? (
+        <StatisticsPage />
       ) : loading ? (
         <p className="text-center text-sm text-neutral-400 py-20">{t("app.loading")}</p>
       ) : error ? (

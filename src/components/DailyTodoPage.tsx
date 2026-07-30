@@ -1,12 +1,32 @@
-import { useState } from "react";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../i18n";
 import { useDailyTodos } from "../useDailyTodos";
+import { addDays, todayString } from "../dailyTodoApi";
+
+function formatDate(dateString: string, lang: "zh" | "en", isToday: boolean, todayLabel: string): string {
+  if (isToday) return todayLabel;
+  const [y, m, d] = dateString.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  if (lang === "zh") {
+    const weekday = ["日", "一", "二", "三", "四", "五", "六"][date.getDay()];
+    return `${y}年${m}月${d}日 星期${weekday}`;
+  }
+  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
 
 export default function DailyTodoPage({ userId }: { userId: string }) {
-  const { t } = useLanguage();
-  const { todos, loading, addTodo, toggleTodo, deleteTodo } = useDailyTodos(userId);
+  const { t, lang } = useLanguage();
+  const [date, setDate] = useState(() => todayString());
+  const { todos, loading, addTodo, toggleTodo, deleteTodo } = useDailyTodos(userId, date);
   const [input, setInput] = useState("");
+
+  const isToday = date === todayString();
+
+  const dateLabel = useMemo(
+    () => formatDate(date, lang, isToday, t("todo.today")),
+    [date, lang, isToday, t]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +41,36 @@ export default function DailyTodoPage({ userId }: { userId: string }) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-medium text-neutral-900">{t("todo.title")}</h1>
       <p className="text-sm text-neutral-500 mt-1">{t("todo.subtitle")}</p>
+
+      <div className="flex items-center justify-between mt-6">
+        <button
+          onClick={() => setDate((d) => addDays(d, -1))}
+          aria-label={t("todo.prevDay")}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100"
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <button
+          onClick={() => setDate(todayString())}
+          className="text-sm font-medium text-neutral-900 hover:text-teal-700"
+          title={t("todo.jumpToday")}
+        >
+          {dateLabel}
+        </button>
+
+        <button
+          onClick={() => setDate((d) => addDays(d, 1))}
+          aria-label={t("todo.nextDay")}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:bg-neutral-100"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {!isToday && (
+        <p className="mt-2 text-xs text-neutral-400 text-center">{t("todo.viewingPast")}</p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
         <input

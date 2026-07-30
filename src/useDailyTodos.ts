@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { DailyTodo } from "./dailyTodoTypes";
 import * as api from "./dailyTodoApi";
 
-export function useDailyTodos(userId: string | null) {
+export function useDailyTodos(userId: string | null, date: string) {
   const [todos, setTodos] = useState<DailyTodo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export function useDailyTodos(userId: string | null) {
     }
     setLoading(true);
     try {
-      const data = await api.fetchTodayTodos();
+      const data = await api.fetchTodosForDate(date);
       setTodos(data);
       setError(null);
     } catch (err) {
@@ -24,16 +24,19 @@ export function useDailyTodos(userId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, date]);
 
   useEffect(() => {
     reload();
   }, [reload]);
 
-  const addTodo = useCallback(async (title: string) => {
-    const newTodo = await api.createTodo(title);
-    setTodos((prev) => [...prev, newTodo]);
-  }, []);
+  const addTodo = useCallback(
+    async (title: string) => {
+      const newTodo = await api.createTodo(title, date);
+      setTodos((prev) => [...prev, newTodo]);
+    },
+    [date]
+  );
 
   const toggleTodo = useCallback(
     async (id: string) => {

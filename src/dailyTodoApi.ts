@@ -19,31 +19,41 @@ function mapRow(row: DailyTodoRow): DailyTodo {
   };
 }
 
-function todayString(): string {
+export function todayString(): string {
   const now = new Date();
   const offset = now.getTimezoneOffset();
   const local = new Date(now.getTime() - offset * 60000);
   return local.toISOString().slice(0, 10);
 }
 
-export async function fetchTodayTodos(): Promise<DailyTodo[]> {
+export function addDays(dateString: string, delta: number): string {
+  const [y, m, d] = dateString.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + delta);
+  const yy = date.getFullYear();
+  const mm = (date.getMonth() + 1).toString().padStart(2, "0");
+  const dd = date.getDate().toString().padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
+export async function fetchTodosForDate(date: string): Promise<DailyTodo[]> {
   const { data, error } = await supabase
     .from("daily_todos")
     .select("*")
-    .eq("todo_date", todayString())
+    .eq("todo_date", date)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data as DailyTodoRow[]).map(mapRow);
 }
 
-export async function createTodo(title: string): Promise<DailyTodo> {
+export async function createTodo(title: string, date: string): Promise<DailyTodo> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error("Not signed in");
 
   const { data, error } = await supabase
     .from("daily_todos")
-    .insert({ user_id: userId, title, todo_date: todayString() })
+    .insert({ user_id: userId, title, todo_date: date })
     .select()
     .single();
   if (error) throw error;

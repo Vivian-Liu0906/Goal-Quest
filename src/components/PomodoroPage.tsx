@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Minus, Pause, Play, Plus, RotateCcw } from "lucide-react";
 import { useLanguage } from "../i18n";
 import * as api from "../pomodoroApi";
-import type { PomodoroBreakdownItem } from "../pomodoroApi";
-import PieChart from "./PieChart";
 
 type Mode = "focus" | "break";
 
@@ -33,23 +31,14 @@ export default function PomodoroPage({ userId }: { userId: string }) {
   const [running, setRunning] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
   const [taskName, setTaskName] = useState("");
-  const [breakdown, setBreakdown] = useState<PomodoroBreakdownItem[]>([]);
   const intervalRef = useRef<number | null>(null);
-
-  const reloadBreakdown = useCallback(() => {
-    api
-      .fetchTodayBreakdown()
-      .then(setBreakdown)
-      .catch((err) => console.error(err));
-  }, []);
 
   useEffect(() => {
     api
       .fetchTodaySessionCount()
       .then(setTodayCount)
       .catch((err) => console.error(err));
-    reloadBreakdown();
-  }, [userId, reloadBreakdown]);
+  }, [userId]);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ focus: focusMinutes, brk: breakMinutes }));
@@ -62,10 +51,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
     if (mode === "focus") {
       api
         .logPomodoroSession(focusMinutes, taskName)
-        .then(() => {
-          setTodayCount((c) => c + 1);
-          reloadBreakdown();
-        })
+        .then(() => setTodayCount((c) => c + 1))
         .catch((err) => console.error(err));
       setMode("break");
       setSecondsLeft(breakMinutes * 60);
@@ -74,7 +60,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
       setMode("focus");
       setSecondsLeft(focusMinutes * 60);
     }
-  }, [mode, focusMinutes, breakMinutes, taskName, reloadBreakdown]);
+  }, [mode, focusMinutes, breakMinutes, taskName]);
 
   useEffect(() => {
     if (!running) return;
@@ -258,21 +244,6 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         </div>
 
         {running && <p className="mt-2 text-xs text-neutral-400">{t("pomodoro.runningHint")}</p>}
-      </div>
-
-      <div className="w-full mt-4 rounded-2xl border border-neutral-200 bg-white p-5">
-        <p className="text-xs font-medium text-neutral-500 mb-4">{t("pomodoro.breakdownTitle")}</p>
-        {breakdown.length === 0 ? (
-          <p className="text-sm text-neutral-400 text-center py-4">{t("pomodoro.breakdownEmpty")}</p>
-        ) : (
-          <PieChart
-            items={breakdown.map((item) => ({
-              label: item.taskName || t("pomodoro.untitledTask"),
-              percent: item.percent,
-              minutes: item.totalMinutes,
-            }))}
-          />
-        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useLanguage } from "../i18n";
 
-export type View = "goals" | "pomodoro" | "todos";
+export type View = "goals" | "pomodoro" | "todos" | "statistics";
 
 interface NavTabsProps {
   active: View;
@@ -14,6 +14,7 @@ export default function NavTabs({ active, onChange }: NavTabsProps) {
     { key: "goals", label: t("nav.goals") },
     { key: "todos", label: t("nav.todos") },
     { key: "pomodoro", label: t("nav.pomodoro") },
+    { key: "statistics", label: t("nav.statistics") },
   ];
 
   return (

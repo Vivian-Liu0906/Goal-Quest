@@ -14,6 +14,7 @@ const dict = {
   "nav.goals": { zh: "目标", en: "Goals" },
   "nav.pomodoro": { zh: "番茄钟", en: "Pomodoro" },
   "nav.todos": { zh: "每日待办", en: "Daily To-Do" },
+  "nav.stats": { zh: "统计", en: "Statistics" },
 
   "auth.signIn": { zh: "登录", en: "Sign In" },
   "auth.signUp": { zh: "注册", en: "Sign Up" },
@@ -125,10 +126,28 @@ const dict = {
   },
   "pomodoro.taskNameLabel": { zh: "这次专注做什么", en: "What are you focusing on" },
   "pomodoro.taskNamePlaceholder": { zh: "例如：写机器学习作业", en: "e.g. Write ML homework" },
-  "pomodoro.breakdownTitle": { zh: "今日时间分布", en: "Today's time breakdown" },
-  "pomodoro.breakdownEmpty": { zh: "还没有完成的番茄钟", en: "No completed pomodoros yet" },
   "pomodoro.untitledTask": { zh: "未命名任务", en: "Untitled task" },
   "pomodoro.minutesUnit": { zh: "分钟", en: "min" },
+
+  "nav.statistics": { zh: "统计", en: "Statistics" },
+
+  "stats.title": { zh: "数据统计", en: "Statistics" },
+  "stats.subtitle": { zh: "看看你的时间都花在哪了", en: "See where your time went" },
+  "stats.day": { zh: "今天", en: "Day" },
+  "stats.week": { zh: "本周", en: "Week" },
+  "stats.month": { zh: "本月", en: "Month" },
+  "stats.totalFocus": { zh: "累计专注", en: "Total focus" },
+  "stats.sessionCount": { zh: "完成番茄钟", en: "Pomodoros completed" },
+  "stats.empty": { zh: "这段时间还没有记录", en: "No records in this period yet" },
+  "stats.untitledTask": { zh: "未命名任务", en: "Untitled task" },
+  "stats.minutesUnit": { zh: "分钟", en: "min" },
+  "stats.countUnit": { zh: "个", en: "" },
+
+  "todo.today": { zh: "今天", en: "Today" },
+  "todo.prevDay": { zh: "前一天", en: "Previous day" },
+  "todo.nextDay": { zh: "后一天", en: "Next day" },
+  "todo.jumpToday": { zh: "回到今天", en: "Jump to today" },
+  "todo.viewingPast": { zh: "查看历史记录，仅可勾选/删除", en: "Viewing past day — check/delete only" },
 
   "todo.title": { zh: "每日待办", en: "Daily To-Do" },
   "todo.subtitle": { zh: "今天要做的事，做完就划掉", en: "What to do today — check it off when done" },
