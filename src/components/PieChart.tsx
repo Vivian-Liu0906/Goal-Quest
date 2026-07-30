@@ -25,13 +25,13 @@ export default function PieChart({ items }: PieChartProps) {
   return (
     <div className="flex items-center gap-6">
       <div
-        className="h-32 w-32 shrink-0 rounded-full"
+        className="h-44 w-44 shrink-0 rounded-full"
         style={{ background: gradient }}
         role="img"
         aria-label="pie chart"
       >
         <div className="h-full w-full flex items-center justify-center">
-          <div className="h-16 w-16 rounded-full bg-white" />
+          <div className="h-20 w-20 rounded-full bg-white" />
         </div>
       </div>
 

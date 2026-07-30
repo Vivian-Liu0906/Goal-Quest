@@ -52,7 +52,7 @@ export default function StatisticsPage() {
   ];
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-medium text-neutral-900">{t("stats.title")}</h1>
       <p className="text-sm text-neutral-500 mt-1">{t("stats.subtitle")}</p>
 
