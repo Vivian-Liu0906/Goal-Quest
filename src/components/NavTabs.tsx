@@ -18,12 +18,12 @@ export default function NavTabs({ active, onChange }: NavTabsProps) {
   ];
 
   return (
-    <div className="flex gap-1 rounded-full bg-neutral-100 p-1 text-sm font-medium w-fit">
+    <div className="flex gap-1 rounded-full bg-neutral-100 p-1 text-sm font-medium w-fit whitespace-nowrap">
       {tabs.map((tab) => (
         <button
           key={tab.key}
           onClick={() => onChange(tab.key)}
-          className={`px-3.5 py-1.5 rounded-full transition-colors ${
+          className={`px-3 py-1 rounded-full transition-colors whitespace-nowrap ${
             active === tab.key ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500"
           }`}
         >
