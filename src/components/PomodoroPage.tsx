@@ -4,6 +4,7 @@ import { useLanguage } from "../i18n";
 import * as api from "../pomodoroApi";
 import { usePet } from "../usePet";
 import Cat from "./Cat";
+import CoinIcon from "./CoinIcon";
 import PetShopModal from "./PetShopModal";
 
 type Mode = "focus" | "break";
@@ -132,8 +133,6 @@ export default function PomodoroPage({ userId }: { userId: string }) {
     .toString()
     .padStart(2, "0");
   const seconds = (secondsLeft % 60).toString().padStart(2, "0");
-  const progress = 1 - secondsLeft / totalSeconds;
-  const circumference = 2 * Math.PI * 90;
 
   const catMood = coinFlash
     ? "happy"
@@ -145,16 +144,16 @@ export default function PomodoroPage({ userId }: { userId: string }) {
 
   return (
     <div className="max-w-md mx-auto px-4 py-8 flex flex-col items-center">
-      <div className="w-full flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-medium text-neutral-900">{t("pomodoro.title")}</h1>
-          <p className="text-sm text-neutral-500 mt-1">{t("pomodoro.subtitle")}</p>
-        </div>
+      <div className="w-full">
+        <h1 className="text-2xl font-medium text-neutral-900">{t("pomodoro.title")}</h1>
+        <p className="text-sm text-neutral-500 mt-1">{t("pomodoro.subtitle")}</p>
       </div>
 
       {pet && (
         <div className="w-full flex items-center justify-between mt-4">
-          <span className="text-sm font-medium text-amber-600">🪙 {pet.coins}</span>
+          <span className="flex items-center gap-1 text-sm font-medium text-amber-700">
+            <CoinIcon size={18} /> {pet.coins}
+          </span>
           <button
             onClick={() => setShowShop(true)}
             className="flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1.5 bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
@@ -164,16 +163,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         </div>
       )}
 
-      <div className="relative h-40 w-40 mt-2">
-        <Cat mood={catMood} skin={pet?.equippedSkin ?? "default"} happyBurstKey={happyBurst} />
-        {coinFlash && (
-          <span className="absolute -top-2 right-0 text-xs font-medium text-amber-600 bg-amber-50 rounded-full px-2 py-0.5 border border-amber-200">
-            +{coinFlash} 🪙
-          </span>
-        )}
-      </div>
-
-      <div className="flex mt-4 rounded-full bg-neutral-100 p-1 text-sm font-medium">
+      <div className="flex mt-6 rounded-full bg-neutral-100 p-1 text-sm font-medium">
         <button
           onClick={() => switchMode("focus")}
           className={`px-4 py-1.5 rounded-full transition-colors ${
@@ -202,30 +192,21 @@ export default function PomodoroPage({ userId }: { userId: string }) {
         />
       )}
 
-      <div className="relative mt-8 h-56 w-56">
-        <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
-          <circle cx="100" cy="100" r="90" fill="none" stroke="#E5E5E5" strokeWidth="10" />
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke={mode === "focus" ? "#0F766E" : "#D97706"}
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - progress)}
-            style={{ transition: "stroke-dashoffset 1s linear" }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-medium text-neutral-900 tabular-nums">
+      <div className="relative h-48 w-48 mt-6">
+        <Cat mood={catMood} skin={pet?.equippedSkin ?? "default"} happyBurstKey={happyBurst} />
+        <div className="absolute inset-x-0 top-6 flex justify-center pointer-events-none">
+          <span className="text-2xl font-semibold text-neutral-900 tabular-nums">
             {minutes}:{seconds}
           </span>
         </div>
+        {coinFlash && (
+          <span className="absolute -top-2 right-0 flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5 border border-amber-200">
+            +{coinFlash} <CoinIcon size={12} />
+          </span>
+        )}
       </div>
 
-      <div className="flex items-center gap-4 mt-8">
+      <div className="flex items-center gap-4 mt-4">
         <button
           onClick={reset}
           aria-label={t("pomodoro.reset")}
@@ -258,7 +239,7 @@ export default function PomodoroPage({ userId }: { userId: string }) {
           <input
             type="range"
             min={5}
-            max={90}
+            max={120}
             step={5}
             value={focusMinutes}
             disabled={running}

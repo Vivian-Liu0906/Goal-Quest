@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Lock } from "lucide-react";
 import Modal from "./Modal";
 import Cat from "./Cat";
+import CoinIcon from "./CoinIcon";
 import { useLanguage } from "../i18n";
 import { SKINS, SNACKS } from "../petTypes";
 import type { PetState, SkinId } from "../petTypes";
@@ -48,7 +49,9 @@ export default function PetShopModal({ pet, onClose, onBuySkin, onEquip, onFeedS
             {t("pet.tabSnacks")}
           </button>
         </div>
-        <span className="text-sm font-medium text-amber-600">🪙 {pet.coins}</span>
+        <span className="flex items-center gap-1 text-sm font-medium text-amber-700">
+          <CoinIcon size={16} /> {pet.coins}
+        </span>
       </div>
 
       {tab === "skins" ? (
@@ -94,7 +97,7 @@ export default function PetShopModal({ pet, onClose, onBuySkin, onEquip, onFeedS
                     disabled={!canAfford}
                     className="w-full text-xs rounded-full px-2 py-1 font-medium bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:hover:bg-amber-500 flex items-center justify-center gap-1"
                   >
-                    {!canAfford && <Lock size={11} />} 🪙 {skin.cost}
+                    {!canAfford && <Lock size={11} />} <CoinIcon size={13} /> {skin.cost}
                   </button>
                 )}
               </div>
@@ -117,9 +120,15 @@ export default function PetShopModal({ pet, onClose, onBuySkin, onEquip, onFeedS
                 <button
                   onClick={() => handleSnack(snack.id, snack.cost)}
                   disabled={!canAfford}
-                  className="w-full text-xs rounded-full px-2 py-1 font-medium bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:hover:bg-amber-500"
+                  className="w-full text-xs rounded-full px-2 py-1 font-medium bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:hover:bg-amber-500 flex items-center justify-center gap-1"
                 >
-                  {fedFlash === snack.id ? t("pet.fed") : `🪙 ${snack.cost}`}
+                  {fedFlash === snack.id ? (
+                    t("pet.fed")
+                  ) : (
+                    <>
+                      <CoinIcon size={13} /> {snack.cost}
+                    </>
+                  )}
                 </button>
               </div>
             );
